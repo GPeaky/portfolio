@@ -1,76 +1,87 @@
+use ahash::AHashMap;
 use mimalloc::MiMalloc;
 use ntex::web::{self, App, HttpRequest, HttpResponse};
-use once_cell::sync::OnceCell;
+use parking_lot::RwLock;
 use std::{
-    collections::HashMap,
     fs::{self, File},
     io::{self, Read},
-    path::{Path, PathBuf},
+    path::Path,
+    sync::Arc,
 };
 use tokio::time::Instant;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
-static STATIC_FILES: OnceCell<HashMap<String, &'static [u8]>> = OnceCell::new();
-
-fn initialize_static_files_cache() {
-    let mut map = HashMap::new();
-    let directory = Path::new("./dist");
-
-    fs::read_dir(directory)
-        .expect("Failed to read directory")
-        .filter_map(Result::ok)
-        .filter(|entry| entry.path().is_file())
-        .for_each(|entry| {
-            let path = entry.path();
-            let contents = read_file(&path);
-            let key = generate_cache_key(&path, directory);
-
-            map.insert(key, contents);
-        });
-
-    STATIC_FILES
-        .set(map)
-        .expect("Failed to set static files map");
+#[derive(Clone)]
+struct StaticFilesCache {
+    cache: Arc<RwLock<AHashMap<String, &'static [u8]>>>,
 }
 
-fn read_file(path: &PathBuf) -> &'static [u8] {
-    let mut contents = Vec::new();
-    File::open(path)
-        .expect("Failed to open file")
-        .read_to_end(&mut contents)
-        .expect("Failed to read file");
+impl StaticFilesCache {
+    pub fn new() -> Self {
+        Self {
+            cache: Arc::new(RwLock::new(AHashMap::new())),
+        }
+    }
 
-    Box::leak(contents.into_boxed_slice())
+    pub fn initialize(&self) {
+        let mut cache = self.cache.write();
+        let directory = Path::new("./dist");
+
+        fs::read_dir(directory)
+            .expect("Failed to read directory")
+            .filter_map(Result::ok)
+            .filter(|entry| entry.path().is_file())
+            .for_each(|entry| {
+                let path = entry.path();
+                let contents = Self::read_file(&path);
+                let key = Self::generate_cache_key(&path, directory);
+
+                cache.insert(key, contents);
+            });
+    }
+
+    #[inline]
+    pub fn get_file(&self, key: &str) -> Option<&'static [u8]> {
+        let cache = self.cache.read();
+        cache.get(key).copied()
+    }
+
+    fn read_file(path: &Path) -> &'static [u8] {
+        let mut contents = Vec::new();
+        File::open(path)
+            .expect("Failed to open file")
+            .read_to_end(&mut contents)
+            .expect("Failed to read file");
+
+        let leaked_contents = Box::leak(contents.into_boxed_slice());
+        leaked_contents
+    }
+
+    fn generate_cache_key(file_path: &Path, base_path: &Path) -> String {
+        file_path
+            .strip_prefix(base_path)
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .replace('\\', "/")
+    }
 }
 
-fn generate_cache_key(file_path: &Path, base_path: &Path) -> String {
-    file_path
-        .strip_prefix(base_path)
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string()
-}
-
-async fn serve_file(req: HttpRequest) -> Result<HttpResponse, web::Error> {
+async fn serve_file(req: HttpRequest, cache: StaticFilesCache) -> Result<HttpResponse, web::Error> {
     let time = Instant::now();
-    let file_name = match Path::new(req.path())
-        .file_name()
-        .and_then(|name| name.to_str())
-    {
-        Some("") | None => "index.html",
-        Some(name) => name,
-    };
+    let mut path = req.path().trim_start_matches('/');
 
-    let files_map = STATIC_FILES.get().expect("Static files not initialized");
+    if path.is_empty() {
+        path = "index.html";
+    }
 
-    let response = if let Some(contents) = files_map.get(file_name) {
-        println!("{} served in {:?}", file_name, time.elapsed());
-        HttpResponse::Ok().content_type("text/html").body(*contents)
+    let response = if let Some(contents) = cache.get_file(path) {
+        println!("{} served in {:?}", path, time.elapsed());
+        HttpResponse::Ok().content_type("text/html").body(contents)
     } else {
-        println!("{} not found, served in {:?}", file_name, time.elapsed());
+        println!("{} not found, served in {:?}", path, time.elapsed());
         HttpResponse::NotFound().finish()
     };
 
@@ -79,10 +90,16 @@ async fn serve_file(req: HttpRequest) -> Result<HttpResponse, web::Error> {
 
 #[ntex::main]
 async fn main() -> io::Result<()> {
-    initialize_static_files_cache();
+    let cache = StaticFilesCache::new();
+    cache.initialize();
 
-    web::server(|| App::new().service(web::resource("/{_:.*}").to(serve_file)))
-        .bind("0.0.0.0:5173")?
-        .run()
-        .await
+    web::server(move || {
+        App::new().service(web::resource("/{_:.*}").to({
+            let cache = cache.clone();
+            move |req| serve_file(req, cache.clone())
+        }))
+    })
+    .bind("0.0.0.0:5173")?
+    .run()
+    .await
 }
