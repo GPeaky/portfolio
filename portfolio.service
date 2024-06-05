@@ -1,0 +1,13 @@
+[Unit]
+Description=Portfolio Service
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/home/fedora/deployments/portfolio
+ExecStart=/home/fedora/deployments/portfolio/portfolio
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
