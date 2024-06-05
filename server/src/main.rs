@@ -14,8 +14,12 @@ mod cache;
 static GLOBAL: MiMalloc = MiMalloc;
 
 static CACHE: Lazy<Arc<Cache>> = Lazy::new(|| {
+    println!("Loading files into cache");
+
     let mut cache = Cache::new();
     cache.initialize("./dist");
+
+    println!("Files loaded & saved in cache");
     Arc::new(cache)
 });
 
@@ -39,8 +43,10 @@ async fn cached_files(req: HttpRequest) -> HttpResponse {
 
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
+    println!("Initializing web server");
+
     web::server(move || App::new().default_service(web::route().to(cached_files)))
-        .bind("0.0.0.0:5173")?
+        .bind("0.0.0.0:5174")?
         .run()
         .await
 }
