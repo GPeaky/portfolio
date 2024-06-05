@@ -1,4 +1,4 @@
-name: Build and Deploy Portfolio
+name: Build and Deploy portfolio
 
 on:
   push:
@@ -23,20 +23,16 @@ jobs:
       - name: Build Back-End
         run: |
           cd server
-          sudo apt-get update && sudo apt-get install -y libssl-dev ca-certificates pkg-config
           cargo build --release
 
       - name: Deploy to Server
         run: |
-          # Stop the running service
-          sudo systemctl stop portfolio-service
+          sudo systemctl stop portfolio
 
-          # Copy the new backend binary to the deployment directory
+          rm -rf /home/fedora/deployments/portfolio/dist
+
           mv server/target/release/portfolio /home/fedora/deployments/portfolio
 
-          # Copy the built front-end (dist folder) to the deployment directory
-          # Ensure you have the correct path where your static files should be served
           mv dist /home/fedora/deployments/portfolio
 
-          # Start the service
-          sudo systemctl start portfolio-service
+          sudo systemctl start portfolio
