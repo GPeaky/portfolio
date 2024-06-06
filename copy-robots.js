@@ -1,17 +1,15 @@
 // Todo: Search an easy way to do this with vite
 
-import fs from "fs";
+import fs from "fs/promises";
 import path from "path";
+import { fileURLToPath } from "url";
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const src = path.resolve(__dirname, "public", "robots.txt");
 const dest = path.resolve(__dirname, "dist", "robots.txt");
 
-fs.copyFile(src, dest, (err) => {
-  if (err) {
-    console.error("Error copiando robots.txt:", err);
-  } else {
-    console.log("robots.txt copiado a dist/");
-  }
-});
+fs.copyFile(src, dest)
+  .then(() => console.log("robots.txt copiado a dist/"))
+  .catch((err) => console.error("Error copiando robots.txt:", err));
