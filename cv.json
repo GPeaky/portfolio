@@ -1,0 +1,107 @@
+{
+  "basics": {
+    "name": "Gerard Zinn",
+    "label": "Técnico en Sistemas Microinformáticos",
+    "image": "/me.jpeg",
+    "email": "gerardzinn2022@gmail.com",
+    "url": "https://midu.dev",
+    "phone": "+34 605320833",
+    "summary": "¡Hola! Soy un apasionado de la tecnología desde joven. A los 13 años, aprendí a montar ordenadores y ayudar a amigos con sus proyectos. Durante la cuarentena de 2020, me introduje en la programación con scripts en Lua para Fivem y, desde entonces, he ampliado mis conocimientos a JavaScript, Node.js y Rust. He trabajado con distintos lenguajes buscando siempre optimizar y mejorar mis habilidades técnicas. Vivo en Barcelona, España, y estoy constantemente aprendiendo para crecer en el campo de los sistemas microinformáticos y redes.",
+    "location": {
+      "address": "",
+      "postalCode": "08172",
+      "city": "Sant Cugat del Vallès",
+      "countryCode": "ES",
+      "region": "España"
+    },
+    "profiles": [
+      {
+        "network": "LinkedIn",
+        "username": "gerard_zinn",
+        "url": "https://linkedin.com/in/gerard_zinn"
+      },
+      {
+        "network": "GitHub",
+        "username": "GPeaky",
+        "url": "https://github.com/gpeaky"
+      }
+    ]
+  },
+  "work": [
+    {
+      "name": "McDonalds",
+      "position": "Empleado",
+      "url": "https://mcdonalds.es/",
+      "startDate": "2024-06-06",
+      "endDate": null,
+      "summary": "En este puesto, proporcioné atención al cliente, preparé alimentos siguiendo los estándares de la empresa y mantuve la limpieza del área de trabajo. Además, colaboré en la gestión de pedidos y aseguré un servicio rápido y eficiente."
+    },
+    {
+      "name": "STUCOM Centre d'Estudis",
+      "position": "Tecnico en sistemas microinformaticos y redes",
+      "url": "https://www.stucom.com/",
+      "startDate": "2023-09-01",
+      "endDate": "2022-03-15",
+      "summary": "En este puesto, proporcioné soporte técnico y asistí en la instalación de una red física. Mis responsabilidades incluyeron la resolución de problemas técnicos, la configuración de hardware y software, y la implementación de soluciones efectivas para garantizar el correcto funcionamiento de los sistemas informáticos y de la red."
+    }
+  ],
+  "education": [
+    {
+      "institution": "Centre d'Estudis Politècnics",
+      "url": "https://politecnics.barcelona/",
+      "area": "Tecnico en sistemas microinformaticos y redes",
+      "studyType": "Bachelor",
+      "startDate": "2022-08-01",
+      "endDate": "2024-06-06"
+    }
+  ],
+  "skills": [
+    {
+      "name": "HTML"
+    },
+    {
+      "name": "CSS"
+    },
+    {
+      "name": "JavaScript"
+    },
+    {
+      "name": "Tailwind"
+    },
+    {
+      "name": "TypeScript"
+    },
+    {
+      "name": "Node"
+    },
+    {
+      "name": "MySQL"
+    },
+    {
+      "name": "Git"
+    },
+    {
+      "name": "GitHub"
+    },
+    {
+      "name": "Next.js"
+    },
+    {
+      "name": "React"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Intelli telemetry",
+      "isActive": true,
+      "description": "Plataforma web integral para la gestión automatizada de campeonatos de carreras F123.",
+      "highlights": [
+        "F1",
+        "Telemetry",
+        "En desarollo"
+      ],
+      "url": "https://intellitelemetry.live/",
+      "github": "https://github.com/Intelli-Telemetry"
+    }
+  ]
+}
