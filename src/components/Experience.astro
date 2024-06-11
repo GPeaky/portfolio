@@ -1,0 +1,29 @@
+---
+import ExperienceItem from "./ExperienceItem.astro";
+const EXPERIENCIE = [
+  {
+    date: "Actualmente...",
+    title: "Crew Member",
+    company: "McDonald's ",
+    description:
+      "Incluye brindar un excelente servicio al cliente, tomar pedidos, preparar alimentos según los estándares de la compañía y manejar la caja registradora. Además, es responsable de mantener la limpieza y organización del área de comedor y cocina.",
+  },
+  {
+    date: "Mayo 2024",
+    title: "Tecnico en sistemas microinformaticos y redes",
+    company: "STUCOM",
+    description:
+      "El puesto implica proporcionar soporte técnico, asistir en la instalación de redes físicas, resolver problemas técnicos, configurar hardware y software, y garantizar el correcto funcionamiento de los sistemas informáticos y de la red.",
+  },
+];
+---
+
+<ol class="relative mt-16">
+  {
+    EXPERIENCIE.map((experiencie) => (
+      <li class="">
+        <ExperienceItem {...experiencie} />
+      </li>
+    ))
+  }
+</ol>

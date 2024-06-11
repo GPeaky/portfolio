@@ -1,0 +1,44 @@
+---
+const personalImageAlt = "Gerard Zinn";
+---
+
+<article
+  class="flex flex-col items-center justify-center gap-8 text-gray-700 dark:text-gray-300 md:flex-row"
+>
+  <div
+    class="[&>p]:mb-4 [&>p>strong]:text-yellow-500 dark:[&>p>strong]:text-yellow-100 [&>p>strong]:font-normal [&>p>strong]:font-mono text-pretty order-2 md:order-1"
+  >
+    <p>
+      ¡Hola! Soy un apasionado de la tecnología desde joven. A los 13 años,
+      aprendí a montar ordenadores y ayudar a amigos con sus proyectos.
+    </p>
+
+    <p>
+      Durante la cuarentena de 2020, me introduje en la programación con scripts
+      en <strong>Lua para Fivem</strong> y, desde entonces, he ampliado mis conocimientos
+      a <strong>JavaScript</strong>, <strong>Node.js</strong> y <strong
+        >Rust</strong
+      >.
+    </p>
+
+    <p>
+      He trabajado con distintos lenguajes buscando siempre optimizar y mejorar
+      mis <strong>habilidades técnicas</strong>.
+    </p>
+
+    <p>
+      Vivo en <strong>Barcelona, España</strong>, y estoy constantemente
+      aprendiendo para crecer en el campo de los sistemas microinformáticos y
+      redes.
+    </p>
+  </div>
+
+  <img
+    width="200"
+    height="200"
+    src="/me.jpeg"
+    alt={personalImageAlt}
+    class="order-1 object-cover w-64 h-full p-1 md:order-2 rotate-3 lg:p-2 lg:w-64 aspect-square rounded-2xl bg-black/20 dark:bg-yellow-500/5 ring-1 ring-black/70 dark:ring-white/20"
+    style="object-position: 50% 50%"
+  />
+</article>
