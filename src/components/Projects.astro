@@ -4,6 +4,8 @@ import Solid from "./icons/Solid.astro";
 import Tailwind from "./icons/Tailwind.astro";
 import Link from "./icons/Link.astro";
 import Rust from "./icons/Rust.astro";
+import Fastify from "./icons/Fastify.astro";
+import TypeScript from "./icons/TypeScript.astro";
 import LinkButton from "./LinkButton.astro";
 
 const TAGS = {
@@ -22,6 +24,16 @@ const TAGS = {
     class: "bg-[#CE422B] text-white",
     icon: Rust,
   },
+  TYPESCRIPT: {
+    name: "TypeScript",
+    class: "bg-[#222] text-white",
+    icon: TypeScript,
+  },
+  FASTIFY: {
+    name: "Fastify",
+    class: "bg-[#fff] text-black",
+    icon: Fastify,
+  },
 };
 const PROJECTS = [
   {
@@ -32,6 +44,14 @@ const PROJECTS = [
     github: "https://github.com/Intelli-Telemetry/api",
     image: "/projects/intellitelemetry.webp",
     tags: [TAGS.RUST, TAGS.SOLID, TAGS.TAILWIND],
+  },
+  {
+    title: "PaHours - Horas de trabajo",
+    description:
+      "Desarrollé una aplicación web para gestionar las horas laborales de los empleados de la empresa de mi padre. La plataforma permite registrar, monitorear y generar informes de horas trabajadas, mejorando la eficiencia y organización.",
+    link: "https://pa-hours.gerardz.de",
+    image: "/projects/pahours.webp",
+    tags: [TAGS.TYPESCRIPT, TAGS.FASTIFY],
   },
 ];
 ---
