@@ -2,38 +2,34 @@ use cache::Cache;
 use mimalloc::MiMalloc;
 use ntex::{
     http::header::{HeaderValue, CONTENT_ENCODING},
-    web::{self, App, HttpRequest, HttpResponse},
+    web::{self, types::State, App, HttpRequest, HttpResponse},
 };
-use once_cell::sync::Lazy;
+use tokio::time::Instant;
 
 mod cache;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
-static CACHE: Lazy<Cache> = Lazy::new(|| {
-    println!("Loading files into cache");
-
-    let mut cache = Cache::new();
-    cache.initialize("./dist");
-
-    println!("Files loaded & saved in cache");
-    cache
-});
-
-async fn cached_files(req: HttpRequest) -> HttpResponse {
+async fn cached_files(req: HttpRequest, cache: State<Cache>) -> HttpResponse {
     let path = req.path();
 
-    if let Some(file) = CACHE.get(path) {
+    let time = Instant::now();
+    if let Some(cached_file) = cache.get(path) {
         let mut response = HttpResponse::Ok()
-            .content_type(&file.content_type)
-            .body(&file.data[..]);
+            .content_type(unsafe {
+                HeaderValue::from_shared_unchecked(cached_file.content_type.clone())
+            })
+            .body(cached_file.data);
 
-        if file.is_compressed {
+        if cached_file.is_compressed {
             response
                 .headers_mut()
                 .insert(CONTENT_ENCODING, HeaderValue::from_static("br"));
         }
+
+        let time = time.elapsed();
+        println!("Time to process request: {:#?}", time);
 
         response
     } else {
@@ -43,10 +39,15 @@ async fn cached_files(req: HttpRequest) -> HttpResponse {
 
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
+    let cache = Cache::new("./dist");
     println!("Initializing web server");
 
-    web::server(move || App::new().default_service(web::route().to(cached_files)))
-        .bind("0.0.0.0:5174")?
-        .run()
-        .await
+    web::server(move || {
+        App::new()
+            .default_service(web::route().to(cached_files))
+            .state(cache.clone())
+    })
+    .bind("0.0.0.0:5174")?
+    .run()
+    .await
 }

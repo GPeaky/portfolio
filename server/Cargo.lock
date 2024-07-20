@@ -816,7 +816,6 @@ dependencies = [
  "mimalloc",
  "mime_guess",
  "ntex",
- "once_cell",
  "tokio",
 ]
 
