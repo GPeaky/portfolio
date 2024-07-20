@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use cache::Cache;
 use mimalloc::MiMalloc;
 use ntex::{
@@ -13,23 +11,25 @@ mod cache;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
-static CACHE: Lazy<Arc<Cache>> = Lazy::new(|| {
+static CACHE: Lazy<Cache> = Lazy::new(|| {
     println!("Loading files into cache");
 
     let mut cache = Cache::new();
     cache.initialize("./dist");
 
     println!("Files loaded & saved in cache");
-    Arc::new(cache)
+    cache
 });
 
 async fn cached_files(req: HttpRequest) -> HttpResponse {
     let path = req.path();
 
-    if let Some((mime_type, content, compressed)) = CACHE.get(path) {
-        let mut response = HttpResponse::Ok().content_type(mime_type).body(content);
+    if let Some(file) = CACHE.get(path) {
+        let mut response = HttpResponse::Ok()
+            .content_type(&file.content_type)
+            .body(&file.data[..]);
 
-        if *compressed {
+        if file.is_compressed {
             response
                 .headers_mut()
                 .insert(CONTENT_ENCODING, HeaderValue::from_static("br"));

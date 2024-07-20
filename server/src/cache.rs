@@ -3,9 +3,16 @@ use std::{fs, io::Write, path::Path};
 use ahash::AHashMap;
 use brotli::{enc::BrotliEncoderParams, CompressorWriter};
 use mime_guess::from_path;
+use ntex::http::header::HeaderValue;
 
 pub struct Cache {
-    cache: AHashMap<String, (String, Vec<u8>, bool)>,
+    cache: AHashMap<String, FileInfo>,
+}
+
+pub struct FileInfo {
+    pub content_type: HeaderValue,
+    pub is_compressed: bool,
+    pub data: Vec<u8>,
 }
 
 impl Cache {
@@ -23,18 +30,17 @@ impl Cache {
         self.load_files_from_dir(root_dir, root_len);
     }
 
-    pub fn get(&self, key: &str) -> Option<(&str, &[u8], &bool)> {
+    pub fn get(&self, key: &str) -> Option<&FileInfo> {
         let cache_key = if !self.cache.contains_key(key) {
             "/index.html"
         } else {
             key
         };
 
-        self.cache
-            .get(cache_key)
-            .map(|(mime_type, data, compressed)| (mime_type.as_str(), data.as_slice(), compressed))
+        self.cache.get(cache_key)
     }
 
+    #[inline]
     fn insert_file(&mut self, path: &Path, root_len: usize) {
         if let Ok(data) = fs::read(path) {
             let mime_type = from_path(path).first_or_octet_stream().to_string();
@@ -66,10 +72,17 @@ impl Cache {
             let mut key = path.to_str().unwrap().to_string().replace('\\', "/");
             key = key[root_len..].to_string();
 
-            self.cache.insert(key, (mime_type, data, should_compress));
+            let file_info = FileInfo {
+                content_type: HeaderValue::from_str(&mime_type).unwrap(),
+                is_compressed: should_compress,
+                data,
+            };
+
+            self.cache.insert(key, file_info);
         }
     }
 
+    #[inline]
     fn load_files_from_dir(&mut self, dir: &Path, root_len: usize) {
         if dir.is_dir() {
             if let Ok(entries) = fs::read_dir(dir) {
