@@ -4,7 +4,6 @@ use ntex::{
     http::header::{HeaderValue, CONTENT_ENCODING},
     web::{self, types::State, App, HttpRequest, HttpResponse},
 };
-use tokio::time::Instant;
 
 mod cache;
 
@@ -14,7 +13,6 @@ static GLOBAL: MiMalloc = MiMalloc;
 async fn cached_files(req: HttpRequest, cache: State<Cache>) -> HttpResponse {
     let path = req.path();
 
-    let time = Instant::now();
     if let Some(cached_file) = cache.get(path) {
         let mut response = HttpResponse::Ok()
             .content_type(unsafe {
@@ -27,9 +25,6 @@ async fn cached_files(req: HttpRequest, cache: State<Cache>) -> HttpResponse {
                 .headers_mut()
                 .insert(CONTENT_ENCODING, HeaderValue::from_static("br"));
         }
-
-        let time = time.elapsed();
-        println!("Time to process request: {:#?}", time);
 
         response
     } else {
