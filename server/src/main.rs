@@ -13,14 +13,12 @@ static GLOBAL: MiMalloc = MiMalloc;
 async fn cached_files(req: HttpRequest, cache: State<Cache>) -> HttpResponse {
     let path = req.path();
 
-    if let Some(cached_file) = cache.get(path) {
+    if let Some((file, compressed)) = cache.get(path) {
         let mut response = HttpResponse::Ok()
-            .content_type(unsafe {
-                HeaderValue::from_shared_unchecked(cached_file.content_type.clone())
-            })
-            .body(cached_file.data);
+            .content_type(unsafe { HeaderValue::from_shared_unchecked(file.content_type.clone()) })
+            .body(file.data);
 
-        if cached_file.is_compressed {
+        if compressed {
             response
                 .headers_mut()
                 .insert(CONTENT_ENCODING, HeaderValue::from_static("br"));

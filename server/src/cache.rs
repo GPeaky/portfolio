@@ -7,49 +7,60 @@ use ntex::{http::header::HeaderValue, util::Bytes};
 
 #[derive(Clone)]
 pub struct Cache {
-    cache: &'static AHashMap<String, FileInfo>,
+    compressed_files: &'static AHashMap<String, FileInfo>,
+    files: &'static AHashMap<String, FileInfo>,
 }
 
 pub struct FileInfo {
     pub content_type: Bytes,
-    pub is_compressed: bool,
     pub data: &'static [u8],
 }
 
 impl Cache {
     pub fn new(root_path: &str) -> Cache {
-        let mut map = AHashMap::new();
+        let mut compressed_files = AHashMap::new();
+        let mut files = AHashMap::new();
 
         let root_dir = Path::new(root_path);
         let root_len = root_dir.to_str().unwrap().len();
-        Cache::load_files_from_dir(&mut map, root_dir, root_len);
+        Cache::load_files_from_dir(&mut compressed_files, &mut files, root_dir, root_len);
 
         Cache {
-            cache: Box::leak(Box::new(map)),
+            compressed_files: Box::leak(Box::new(compressed_files)),
+            files: Box::leak(Box::new(files)),
         }
     }
 
     #[inline]
-    pub fn get(&self, key: &str) -> Option<&FileInfo> {
-        let cache_key = if !self.cache.contains_key(key) {
-            "/index.html"
-        } else {
-            key
-        };
+    pub fn get(&self, key: &str) -> Option<(&FileInfo, bool)> {
+        if let Some(file_info) = self.compressed_files.get(key) {
+            return Some((file_info, true));
+        }
 
-        self.cache.get(cache_key)
+        if let Some(file_info) = self.files.get(key) {
+            return Some((file_info, false));
+        }
+
+        self.compressed_files
+            .get("/index.html")
+            .map(|file_info| (file_info, true))
     }
 
     #[inline]
-    fn load_files_from_dir(map: &mut AHashMap<String, FileInfo>, dir: &Path, root_len: usize) {
+    fn load_files_from_dir(
+        compressed_files: &mut AHashMap<String, FileInfo>,
+        files: &mut AHashMap<String, FileInfo>,
+        dir: &Path,
+        root_len: usize,
+    ) {
         if dir.is_dir() {
             if let Ok(entries) = fs::read_dir(dir) {
                 for entry in entries.filter_map(Result::ok) {
                     let path: std::path::PathBuf = entry.path();
                     if path.is_dir() {
-                        Cache::load_files_from_dir(map, &path, root_len);
+                        Cache::load_files_from_dir(compressed_files, files, &path, root_len);
                     } else {
-                        Cache::insert_file(map, &path, root_len);
+                        Cache::insert_file(compressed_files, files, &path, root_len);
                     }
                 }
             }
@@ -57,7 +68,12 @@ impl Cache {
     }
 
     #[inline]
-    fn insert_file(map: &mut AHashMap<String, FileInfo>, path: &Path, root_len: usize) {
+    fn insert_file(
+        compressed_files: &mut AHashMap<String, FileInfo>,
+        files: &mut AHashMap<String, FileInfo>,
+        path: &Path,
+        root_len: usize,
+    ) {
         if let Ok(data) = fs::read(path) {
             let mime_type = from_path(path).first_or_octet_stream().to_string();
             let content_type = HeaderValue::from_str(&mime_type).unwrap();
@@ -70,15 +86,20 @@ impl Cache {
             };
 
             let key = Cache::generate_key(path, root_len);
+            let file_info = FileInfo {
+                content_type: Bytes::copy_from_slice(content_type.as_bytes()),
+                data,
+            };
 
-            map.insert(
-                key,
-                FileInfo {
-                    content_type: Bytes::copy_from_slice(content_type.as_bytes()),
-                    data,
-                    is_compressed: should_compress,
-                },
-            );
+            match should_compress {
+                true => {
+                    compressed_files.insert(key, file_info);
+                }
+
+                false => {
+                    files.insert(key, file_info);
+                }
+            }
         }
     }
 
