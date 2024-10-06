@@ -13,21 +13,22 @@ static GLOBAL: MiMalloc = MiMalloc;
 async fn cached_files(req: HttpRequest, cache: State<Cache>) -> HttpResponse {
     let path = req.path();
 
-    if let Some((file, compressed)) = cache.get(path) {
-        let mut response = HttpResponse::Ok()
-            .content_type(unsafe { HeaderValue::from_shared_unchecked(file.content_type.clone()) })
-            .body(file.data);
+    let (file, compressed) = match cache.get(path) {
+        Some(res) => res,
+        None => return HttpResponse::NotFound().finish(),
+    };
 
-        if compressed {
-            response
-                .headers_mut()
-                .insert(CONTENT_ENCODING, HeaderValue::from_static("br"));
-        }
+    let mut response = HttpResponse::Ok()
+        .content_type(unsafe { HeaderValue::from_shared_unchecked(file.content_type.clone()) })
+        .body(file.data);
 
+    if compressed {
         response
-    } else {
-        HttpResponse::NotFound().finish()
+            .headers_mut()
+            .insert(CONTENT_ENCODING, HeaderValue::from_static("br"));
     }
+
+    response
 }
 
 #[ntex::main]
