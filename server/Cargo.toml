@@ -8,9 +8,8 @@ edition = "2021"
 ahash = "0.8"
 mimalloc = "0.1"
 mime_guess = "2"
-ntex = { version = "2", features = ["tokio"] }
-tokio = { version = "1", features = ["full"] }
-brotli = { version = "6", features = ["simd"] }
+ntex = { version = "2", features = ["compio"] }
+brotli = { version = "7", features = ["simd"] }
 
 [profile.release]
 debug = 0
