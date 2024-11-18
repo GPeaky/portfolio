@@ -41,7 +41,7 @@ async fn main() -> std::io::Result<()> {
             .default_service(web::route().to(cached_files))
             .state(cache.clone())
     })
-    .bind("0.0.0.0:5174")?
+    .bind("127.0.0.1:5174")?
     .run()
     .await
 }
