@@ -1,40 +1,54 @@
 use cache::Cache;
-use mimalloc::MiMalloc;
 use ntex::{
     http::header::{HeaderValue, CONTENT_ENCODING},
+    util::Bytes,
     web::{self, types::State, App, HttpRequest, HttpResponse},
 };
+use tracing::{info, Level};
 
 mod cache;
+mod cache_init;
+mod compression;
+mod startup_log;
 
+#[cfg(not(test))]
 #[global_allocator]
-static GLOBAL: MiMalloc = MiMalloc;
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
+#[inline(always)]
 async fn cached_files(req: HttpRequest, cache: State<Cache>) -> HttpResponse {
     let path = req.path();
 
-    let (file, compressed) = match cache.get(path) {
-        Some(res) => res,
-        None => return HttpResponse::NotFound().finish(),
-    };
+    if let Some((file, compressed)) = cache.get(path) {
+        let mut response = HttpResponse::Ok()
+            .content_type(unsafe {
+                HeaderValue::from_shared_unchecked(Bytes::from_static(file.content_type))
+            })
+            .body(file.data);
 
-    let mut response = HttpResponse::Ok()
-        .content_type(unsafe { HeaderValue::from_shared_unchecked(file.content_type.clone()) })
-        .body(file.data);
-
-    if compressed {
+        if compressed {
+            response
+                .headers_mut()
+                .insert(CONTENT_ENCODING, HeaderValue::from_static("br"));
+        }
         response
-            .headers_mut()
-            .insert(CONTENT_ENCODING, HeaderValue::from_static("br"));
+    } else {
+        HttpResponse::NotFound().finish()
     }
-
-    response
 }
 
+// TODO: Load host from .env
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
-    let cache = Cache::new("./dist");
-    println!("Initializing web server");
+    tracing_subscriber::fmt()
+        .with_max_level(Level::INFO)
+        .compact()
+        .init();
+
+    info!("🌐 Initializing file cache...");
+    let cache = Cache::new("./dist").await;
+
+    info!("🚀 Starting web server on 0.0.0.0:5173");
 
     web::server(move || {
         App::new()
