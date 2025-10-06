@@ -1,7 +1,5 @@
 ---
 import GitHub from "./icons/GitHub.astro";
-import Solid from "./icons/Solid.astro";
-import Tailwind from "./icons/Tailwind.astro";
 import Link from "./icons/Link.astro";
 import Rust from "./icons/Rust.astro";
 import Fastify from "./icons/Fastify.astro";
@@ -9,11 +7,6 @@ import TypeScript from "./icons/TypeScript.astro";
 import LinkButton from "./LinkButton.astro";
 
 const TAGS = {
-  SOLID: {
-    name: "Solid.js",
-    class: "bg-[#2c4f7c] text-white",
-    icon: Solid,
-  },
   RUST: {
     name: "Rust",
     class: "bg-[#CE422B] text-white",
@@ -32,13 +25,13 @@ const TAGS = {
 };
 const PROJECTS = [
   {
-    title: "Intelli Telemetry - Telemetry web for F1 Games",
+    title: "Vartex - Native F1 25 Telemetry Overlays",
     description:
-      "Intelli Telemetry Platform es una aplicación web diseñada para automatizar y gestionar campeonatos de carreras de F1. Nuestra plataforma ofrece seguimiento en tiempo real de posiciones, telemetría detallada para ingenieros de equipo y múltiples funciones para mejorar la experiencia de los participantes y organizadores.",
-    link: "https://intellitelemetry.com",
-    github: "https://github.com/GPeaky/intelli-telemetry",
-    image: "/projects/intellitelemetry.webp",
-    tags: [TAGS.RUST, TAGS.SOLID],
+      "Aplicación nativa de telemetría para F1 25 con rendimiento extremo: 0ms de latencia, 20MB de RAM y 60Hz. Ofrece overlays en tiempo real de inputs, gestión de neumáticos y relative display. Completamente gratuita y enfocada en privacidad.",
+    link: "https://vartex.app",
+    github: "https://github.com/VartexApp",
+    image: "/projects/vartex.webp",
+    tags: [TAGS.RUST],
   },
   {
     title: "PaHours - Horas de trabajo",
@@ -58,7 +51,6 @@ const PROJECTS = [
         <div class="w-full md:w-1/2">
           <div class="relative flex flex-col items-center col-span-6 row-span-5 gap-8 transition duration-500 ease-in-out transform shadow-xl overflow-clip rounded-xl sm:rounded-xl md:group-hover:-translate-y-1 md:group-hover:shadow-2xl lg:border lg:border-gray-800 lg:hover:border-gray-700 lg:hover:bg-gray-800/50">
             <img
-              alt="Recién llegado vs 5 años en Nueva Zelanda"
               class="object-cover object-top w-full h-56 transition duration-500 sm:h-full md:scale-110 md:group-hover:scale-105"
               loading="lazy"
               src={image}
